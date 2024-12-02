@@ -11,11 +11,15 @@
 		"default_popup": "index.html"
 	},
 	"permissions": ["storage", "identity"],
-	"host_permissions": ["https://*.supabase.co/*"],
+	"host_permissions": ["https://*.supabase.co/*", "https://*.github.com/*"],
+	"oauth2": {
+		"client_id": "Ov23liI1XaCdueZmxqHw",
+		"scopes": ["user:email"]
+	},
 	"web_accessible_resources": [
 		{
 			"resources": ["*.html"],
-			"matches": ["https://*.supabase.co/*"]
+			"matches": ["https://*.supabase.co/*", "https://*.github.com/*"]
 		}
 	]
 }
