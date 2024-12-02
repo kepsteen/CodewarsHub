@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+build
 dist-ssr
 *.local
 
@@ -24,3 +25,7 @@ dist-ssr
 *.sw?
 
 .env*
+build/
+dist/
+build/index.html
+build/manifest.json
