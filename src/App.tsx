@@ -3,15 +3,16 @@ import "./App.css";
 import { createClient, Session } from "@supabase/supabase-js";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { getEnvVar } from "./lib/utils/env";
 
 const supabase = createClient(
-	"https://<project>.supabase.co",
-	"<your-anon-key>"
+	getEnvVar("SUPABASE_URL"),
+	getEnvVar("SUPABASE_ANON_KEY")
 );
 
 export default function App() {
 	const [session, setSession] = useState<Session | null>(null);
-
+	console.log("session", session);
 	useEffect(() => {
 		supabase.auth.getSession().then(({ data: { session } }) => {
 			setSession(session);
@@ -27,7 +28,14 @@ export default function App() {
 	}, []);
 
 	if (!session) {
-		return <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />;
+		return (
+			<Auth
+				supabaseClient={supabase}
+				appearance={{ theme: ThemeSupa }}
+				providers={["github"]}
+				onlyThirdPartyProviders
+			/>
+		);
 	} else {
 		return <div>Logged in!</div>;
 	}
