@@ -12,7 +12,6 @@ const supabase = createClient(
 
 export default function App() {
 	const [session, setSession] = useState<Session | null>(null);
-	console.log("session", session);
 	useEffect(() => {
 		supabase.auth.getSession().then(({ data: { session } }) => {
 			setSession(session);

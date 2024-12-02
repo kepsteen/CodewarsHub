@@ -12,10 +12,8 @@
 	},
 	"permissions": ["storage", "identity"],
 	"host_permissions": ["https://*.supabase.co/*"],
-	"web_accessible_resources": [
-		{
-			"resources": ["*.html"],
-			"matches": ["https://*.supabase.co/*"]
-		}
-	]
+	"oauth2": {
+		"client_id": "YOUR_GITHUB_CLIENT_ID",
+		"scopes": ["user:email"]
+	}
 }
