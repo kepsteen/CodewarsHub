@@ -6,64 +6,82 @@ export const supabase = createClient(
 	getEnvVar("SUPABASE_ANON_KEY")
 );
 
-export async function signInWithGitHub(): Promise<{ session: Session }> {
+export async function signInWithGitHub(): Promise<{
+	session: Session;
+	providerToken: string;
+}> {
 	const redirectUrl = `https://${chrome.runtime.id}.chromiumapp.org/`;
 
-	const { data } = await supabase.auth.signInWithOAuth({
+	const { data, error } = await supabase.auth.signInWithOAuth({
 		provider: "github",
 		options: {
 			skipBrowserRedirect: true,
 			redirectTo: redirectUrl,
-			scopes: "repo public_repo",
+			scopes: "repo read:user user:email",
+			queryParams: {
+				access_type: "offline",
+			},
 		},
 	});
 
-	if (!data.url) {
+	if (error || !data.url) {
 		throw new Error("Failed to get authorization URL");
 	}
 
-	// Launch Chrome's OAuth flow
 	return new Promise((resolve, reject) => {
 		chrome.identity.launchWebAuthFlow(
 			{
 				url: data.url,
 				interactive: true,
 			},
-			async (redirectUrl) => {
-				if (chrome.runtime.lastError || !redirectUrl) {
+			async (callbackUrl) => {
+				if (chrome.runtime.lastError || !callbackUrl) {
 					reject(
 						chrome.runtime.lastError || new Error("Failed to get redirect URL")
 					);
 					return;
 				}
 
-				// Extract the fragment parameters
-				const hashParams = new URLSearchParams(redirectUrl.split("#")[1]);
-				const access_token = hashParams.get("access_token");
-				const refresh_token = hashParams.get("refresh_token");
+				try {
+					const hashParams = new URLSearchParams(callbackUrl.split("#")[1]);
+					const access_token = hashParams.get("access_token");
+					const refresh_token = hashParams.get("refresh_token");
+					const provider_token = hashParams.get("provider_token");
 
-				if (!access_token) {
-					reject(new Error("No access token found"));
-					return;
+					if (!access_token || !refresh_token || !provider_token) {
+						reject(new Error("Missing required tokens"));
+						return;
+					}
+
+					const { data: sessionData, error: sessionError } =
+						await supabase.auth.setSession({
+							access_token,
+							refresh_token,
+						});
+
+					if (sessionError || !sessionData.session) {
+						reject(sessionError || new Error("No session returned"));
+						return;
+					}
+
+					resolve({
+						session: sessionData.session,
+						providerToken: provider_token,
+					});
+				} catch (error) {
+					reject(error);
 				}
-				if (!refresh_token) {
-					reject(new Error("No refresh token found"));
-					return;
-				}
-
-				// Exchange the token with Supabase
-				const { data: sessionData, error } = await supabase.auth.setSession({
-					access_token,
-					refresh_token: refresh_token,
-				});
-
-				if (error || !sessionData.session) {
-					reject(error || new Error("No session returned"));
-					return;
-				}
-
-				resolve({ session: sessionData.session });
 			}
 		);
 	});
 }
+
+export const signOut = async () => {
+	try {
+		const { error } = await supabase.auth.signOut();
+		if (error) throw error;
+		console.log("Successfully logged out");
+	} catch (err) {
+		console.error("Error logging out:", err);
+	}
+};

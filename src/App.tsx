@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { Session } from "@supabase/supabase-js";
-import { signInWithGitHub } from "./lib/utils/auth";
+import { signInWithGitHub, signOut } from "./lib/utils/auth";
 import { supabase } from "./lib/utils/auth";
+import { Button } from "@/components/ui/button";
+import RepositoryForm from "./components/ui/create-repo-form";
 
 export default function App() {
 	const [session, setSession] = useState<Session | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [providerToken, setProviderToken] = useState<string | null>(null);
 
 	useEffect(() => {
 		// Check for existing session
@@ -30,8 +33,9 @@ export default function App() {
 		try {
 			setLoading(true);
 			setError(null);
-			const { session } = await signInWithGitHub();
+			const { session, providerToken } = await signInWithGitHub();
 			setSession(session);
+			setProviderToken(providerToken);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to login");
 		} finally {
@@ -44,13 +48,20 @@ export default function App() {
 	if (!session) {
 		return (
 			<div>
-				<button onClick={handleGitHubLogin} disabled={loading}>
+				<Button onClick={handleGitHubLogin} disabled={loading}>
 					{loading ? "Loading..." : "Sign in with GitHub"}
-				</button>
+				</Button>
 				{error && <p style={{ color: "red" }}>{error}</p>}
 			</div>
 		);
 	}
 
-	return <div>Logged in as {session.user.email}</div>;
+	return (
+		<>
+			<div>Logged in as {session.user.email}</div>
+			<div>GitHub token: {providerToken}</div>
+			<Button onClick={signOut}>Sign out</Button>
+			{providerToken && <RepositoryForm token={providerToken} />}
+		</>
+	);
 }
