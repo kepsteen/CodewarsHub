@@ -3,6 +3,8 @@ import "./App.css";
 import { Session } from "@supabase/supabase-js";
 import { signInWithGitHub, signOut } from "./lib/utils/auth";
 import { supabase } from "./lib/utils/auth";
+import { Button } from "@/components/ui/button";
+import RepositoryForm from "./components/ui/create-repo-form";
 
 export default function App() {
 	const [session, setSession] = useState<Session | null>(null);
@@ -46,9 +48,9 @@ export default function App() {
 	if (!session) {
 		return (
 			<div>
-				<button onClick={handleGitHubLogin} disabled={loading}>
+				<Button onClick={handleGitHubLogin} disabled={loading}>
 					{loading ? "Loading..." : "Sign in with GitHub"}
-				</button>
+				</Button>
 				{error && <p style={{ color: "red" }}>{error}</p>}
 			</div>
 		);
@@ -58,7 +60,8 @@ export default function App() {
 		<>
 			<div>Logged in as {session.user.email}</div>
 			<div>GitHub token: {providerToken}</div>
-			<button onClick={signOut}>Sign out</button>
+			<Button onClick={signOut}>Sign out</Button>
+			<RepositoryForm token={providerToken} />
 		</>
 	);
 }
