@@ -11,6 +11,9 @@ export default function App() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [providerToken, setProviderToken] = useState<string | null>(null);
+	const [repoName, setRepoName] = useState<string | null>(
+		localStorage.getItem("repo")
+	);
 
 	useEffect(() => {
 		// Check for existing session
@@ -36,11 +39,16 @@ export default function App() {
 			const { session, providerToken } = await signInWithGitHub();
 			setSession(session);
 			setProviderToken(providerToken);
+			localStorage.setItem("token", providerToken);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to login");
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	const handleRepoCreated = (newRepoName: string) => {
+		setRepoName(newRepoName);
 	};
 
 	if (loading) return <div>Loading...</div>;
@@ -59,9 +67,18 @@ export default function App() {
 	return (
 		<>
 			<div>Logged in as {session.user.email}</div>
-			<div>GitHub token: {providerToken}</div>
 			<Button onClick={signOut}>Sign out</Button>
-			{providerToken && <RepositoryForm token={providerToken} />}
+			{providerToken && !repoName && (
+				<RepositoryForm
+					token={providerToken}
+					onRepoCreated={handleRepoCreated}
+				/>
+			)}
+			{repoName && (
+				<div>
+					<p>Repository created: {repoName}</p>
+				</div>
+			)}
 		</>
 	);
 }

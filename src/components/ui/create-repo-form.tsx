@@ -19,15 +19,27 @@ import { createGitHubRepo } from "@/lib/utils/github";
 
 type RepoFormProps = {
 	token: string;
+	onRepoCreated: (repoName: string) => void;
 };
 
-export default function RepositoryForm({ token }: RepoFormProps) {
+export default function RepositoryForm({
+	token,
+	onRepoCreated,
+}: RepoFormProps) {
 	const [isPrivate, setIsPrivate] = useState<boolean>(false);
+	const [isLoading, setIsLoading] = useState(false);
 
-	const handleSubmit = (event: React.FormEvent) => {
+	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault();
-		createGitHubRepo(isPrivate, token, "kepsteen");
-		setIsPrivate(false);
+		setIsLoading(true);
+		try {
+			const repoName = await createGitHubRepo(isPrivate, token, "kepsteen");
+			onRepoCreated(repoName);
+		} catch (error) {
+			console.error(error);
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	return (
@@ -55,8 +67,8 @@ export default function RepositoryForm({ token }: RepoFormProps) {
 					</div>
 				</CardContent>
 				<CardFooter>
-					<Button type="submit" className="w-full">
-						Create Repository
+					<Button type="submit" className="w-full" disabled={isLoading}>
+						{isLoading ? "Creating..." : "Create Repository"}
 					</Button>
 				</CardFooter>
 			</form>
