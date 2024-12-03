@@ -3,9 +3,10 @@ export const createGitHubRepo = async (
 	token: string,
 	username: string
 ) => {
+	const repoName = "Codewars";
 	const url = "https://api.github.com/user/repos";
 	const data = {
-		name: "Codewars",
+		name: repoName,
 		private: isPrivate,
 	};
 
@@ -23,9 +24,10 @@ export const createGitHubRepo = async (
 			throw new Error(`Error: ${response.statusText}`);
 		}
 
-		const repoData = await response.json();
-		localStorage.setItem("repo", `${username}/Codewars`);
-		return repoData;
+		await response.json();
+		const fullRepoName = `${username}/Codewars`;
+		localStorage.setItem("repo", fullRepoName);
+		return fullRepoName;
 	} catch (error) {
 		console.error("Error creating repository:", error);
 		throw new Error("Failed to create repository");
