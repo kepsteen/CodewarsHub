@@ -61,7 +61,7 @@ export default function App() {
 			<div>Logged in as {session.user.email}</div>
 			<div>GitHub token: {providerToken}</div>
 			<Button onClick={signOut}>Sign out</Button>
-			<RepositoryForm token={providerToken} />
+			{providerToken && <RepositoryForm token={providerToken} />}
 		</>
 	);
 }
